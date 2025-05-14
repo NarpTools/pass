@@ -1,4 +1,4 @@
-![Logo](/media/confetti.png)
+![Logo](/media/pass-logo.png)
 # 🎉 PASS
 PASS is the DevKit for Bitey
 
