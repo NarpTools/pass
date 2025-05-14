@@ -7,33 +7,3 @@ if [[ "$1" == "init" ]]; then
     touch project/paths.txt project/install.sh
     git init | exit 0
 fi
-if [[ "$1" == "make-pkg" ]]; then
-    # Load metadata
-    if [[ -f pak.conf ]]; then
-        source pak.conf
-    else
-        echo "❌ pak.conf not found"
-        exit 1
-    fi
-
-    # Ensure PACKAGE_NAME is set
-    if [[ -z "$PACKAGE_NAME" ]]; then
-        echo "❌ PACKAGE_NAME is not defined in pak.conf"
-        exit 1
-    fi
-
-    PACKAGE_DIR=$(pwd)
-    PACKAGE_PARENT=$(dirname "$PACKAGE_DIR")
-    OUTPUT_FILE="$PACKAGE_PARENT/${PACKAGE_NAME}.bit.pak"
-
-    # Compress the current directory
-    echo "📦 Building binary package..."
-    tar -cf - . | xz -z > "$OUTPUT_FILE"
-
-    if [[ $? -eq 0 ]]; then
-        echo "✅ Built: $OUTPUT_FILE"
-    else
-        echo "❌ Failed to make package."
-        exit 1
-    fi
-fi
