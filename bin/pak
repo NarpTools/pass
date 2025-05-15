@@ -3,7 +3,6 @@
 if [[ "$1" == "init" ]]; then
     mkdir pak
     mkdir project bin media
-    wget https://raw.githubusercontent.com/NarpTools/basesdk/main/core/pak.conf
     touch project/paths.txt project/install.sh
     git init | exit 0
 fi
