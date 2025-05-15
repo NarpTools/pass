@@ -4,5 +4,5 @@ if [[ "$1" == "init" ]]; then
     mkdir pak
     mkdir project bin media
     touch pak.conf project/paths.txt project/install.sh project/remove.sh project/update.sh
-    git init | exit 0
+    git rev-parse --is-inside-work-tree &>/dev/null || git init
 fi
