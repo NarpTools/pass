@@ -147,3 +147,4 @@ if [[ "$1" == "link" && "$2" == "gh-create" ]]; then
     echo "✅ GitHub repository created and project pushed."
     exit 0
 fi
+exit 0
