@@ -47,10 +47,9 @@ if [[ "$1" == "module-add" ]]; then
         echo "❌️ Not a valid pak project: pak.conf not found."
         exit 1
     fi
-    # Ensure modules directory exists
-    if [[ ! -d pak/modules ]]; then
-        mkdir pak/modules
-    fi
+    if [[ ! -d "pak/modules" ]]; then
+        echo "❌ Module directory does not exist."
+        echo "⚠️ If you want to create the modules directory, run 'pak module-attach'." 
     if [[ -d "$TARGET" ]]; then
         echo "⚠️ Module $MODULE is already installed at $TARGET. Skipping..."
         exit 0
@@ -83,6 +82,10 @@ if [[ "$1" == "module-del" ]]; then
 fi
 
 if [[ "$1" == "module-list" ]]; then
+    if [[ ! -f "pak.conf" ]]; then
+        echo "❌️ Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
     if [[ ! -d "pak/modules" ]]; then
         echo "ℹ️ No modules installed."
         exit 0
@@ -91,3 +94,16 @@ if [[ "$1" == "module-list" ]]; then
     ls pak/modules
     exit 0
 fi
+
+if [[ "$1" == "module-attach" ]]; then
+    if [[ ! -f "pak.conf" ]]; then
+        echo "❌️ Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
+    if [[ -d "pak/modules" ]]; then
+        echo "⚠️ The modules directory is already attached."
+    fi
+    mkdir pak/modules
+fi
+
+    
