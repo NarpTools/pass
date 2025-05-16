@@ -52,7 +52,7 @@ if [[ "$1" == "module-add" ]]; then
         mkdir pak/modules
     fi
     if [[ -d "$TARGET" ]]; then
-        echo "⚠️ $MODULE is already installed at $TARGET. Skipping..."
+        echo "⚠️ Module $MODULE is already installed at $TARGET. Skipping..."
         exit 0
     fi
     # Move the module
