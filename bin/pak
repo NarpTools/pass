@@ -89,4 +89,3 @@ if [[ "$1" == "module-list" ]]; then
     ls pak/modules
     exit 0
 fi
-
