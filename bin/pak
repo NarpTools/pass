@@ -2,7 +2,7 @@
 
 if [[ "$1" == "init" ]]; then
     mkdir pak project bin media
-    touch pak.conf project/paths.txt project/install.sh project/remove.sh project/update.sh project/depends.txt
+    touch pak.conf project/paths.txt project/install.sh project/remove.sh project/update.sh project/depends.txt pak/ensure.txt
     echo -e "DEPENDS=(\n)" > project/depends.txt
     git rev-parse --is-inside-work-tree &>/dev/null || git init
 fi
@@ -30,4 +30,48 @@ if [[ "$1" == "zip" ]]; then
     rm -rf .build
 
     echo "📦 Package archived: $OUTPUT_NAME"
+fi
+
+if [[ "$1" == "module-add" ]]; then
+    $MODULE="$2"
+    $ORIGIN="https://github.com/NarpExtra/pakmodule-$MODULE.git"
+    $TARGET="./pak/modules/$MODULE"
+    # Check if we're in a valid pak project
+    if [[ ! -f "pak.conf" ]]; then
+        echo "❌️ Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
+    # Ensure modules directory exists
+    if [[ ! -d pak/modules ]]; then
+        mkdir pak/modules
+    fi
+    if [[ -d "$TARGET" ]]; then
+        echo "⚠️ $MODULE is already installed at $TARGET. Skipping..."
+        exit 0
+    fi
+    # Download the module
+    git clone "$ORIGIN" "$TARGET" || {
+        echo "❌ Installation failure."
+        exit 1
+    } 
+fi
+if [[ "$1" == "module-del" ]]; then
+    $MODULE="$2"
+    $TARGET="./pak/modules/$MODULE"
+    # Check if we're in a valid pak project
+    if [[ ! -f "pak.conf" ]]; then
+        echo "❌️ Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
+    # Ensure modules directory exists
+    if [[ ! -d pak/modules ]]; then
+        echo "❌️ No modules installed."
+        exit 1
+    fi
+    if [[ ! -d "$TARGET" ]]; then
+        echo "❌️ $MODULE is not installed."
+        exit 1
+    fi
+    # Remove the module
+    rm -rf "$TARGET"
 fi
