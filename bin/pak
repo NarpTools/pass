@@ -37,8 +37,12 @@ if [[ "$1" == "install" ]]; then
         echo "❌️ No such package: $PACKAGE."
         exit 1
     fi
-    
-    
+    mkdir -p "$PACKAGE"
+    tar -xf "$PACKAGE.choco.pkg" -C "$PACKAGE"
+    sudo bitey install local "$PACKAGE"
+    rm -rf "$PACKAGE"
+    echo "📦 Installed package archive: $PACKAGE.choco.pkg"
+fi  
 if [[ "$1" == "module-add" ]]; then
     $MODULE="$2"
     $ORIGIN="./$MODULE"
