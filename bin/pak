@@ -106,4 +106,43 @@ if [[ "$1" == "module-attach" ]]; then
     mkdir pak/modules
 fi
 
-    
+if [[ "$1" == "link" && "$2" == "init" ]]; then
+    REMOTE_URL="$3"
+
+    if [[ -z "$REMOTE_URL" ]]; then
+        echo "❌ No remote repository URL specified."
+        echo "Usage: pak attach init <remote-url>"
+        exit 1
+    fi
+
+    if [[ ! -f "pak.conf" ]]; then
+        echo "❌ Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
+
+    git rev-parse --is-inside-work-tree &>/dev/null || git init
+    git remote add origin "$REMOTE_URL" 2>/dev/null || echo "⚠️ Remote 'origin' already exists."
+    git add .
+    git commit -m "Initial commit" 2>/dev/null || echo "⚠️ Nothing to commit or already committed."
+    git branch -M main
+    git push -u origin main
+
+    echo "✅ Project attached to $REMOTE_URL and pushed."
+    exit 0
+fi
+
+if [[ "$1" == "link" && "$2" == "gh-create" ]]; then
+    REPO_NAME="$(basename "$PWD")"
+    GH_USER=$(gh api user | grep '"login":' | cut -d'"' -f4)
+
+    if [[ -z "$GH_USER" ]]; then
+        echo "❌ GitHub CLI not authenticated. Run: gh auth login"
+        exit 1
+    fi
+
+    echo "📡 Creating GitHub repository: $GH_USER/$REPO_NAME ..."
+    gh repo create "$GH_USER/$REPO_NAME" --public --source=. --remote=origin --push
+
+    echo "✅ GitHub repository created and project pushed."
+    exit 0
+fi
