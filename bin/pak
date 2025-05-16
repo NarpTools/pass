@@ -31,10 +31,17 @@ if [[ "$1" == "zip" ]]; then
 
     echo "📦 Package archived: $OUTPUT_NAME"
 fi
-
+if [[ "$1" == "install" ]]; then
+    $PACKAGE="$2"
+    if [[ ! -f "$PACKAGE" ]]; then
+        echo "❌️ No such package: $PACKAGE."
+        exit 1
+    fi
+    
+    
 if [[ "$1" == "module-add" ]]; then
     $MODULE="$2"
-    $ORIGIN="https://github.com/NarpExtra/pakmodule-$MODULE.git"
+    $ORIGIN="./$MODULE"
     $TARGET="./pak/modules/$MODULE"
     # Check if we're in a valid pak project
     if [[ ! -f "pak.conf" ]]; then
@@ -49,11 +56,8 @@ if [[ "$1" == "module-add" ]]; then
         echo "⚠️ $MODULE is already installed at $TARGET. Skipping..."
         exit 0
     fi
-    # Download the module
-    git clone "$ORIGIN" "$TARGET" || {
-        echo "❌ Installation failure."
-        exit 1
-    } 
+    # Move the module
+    mv "$ORIGIN" "$TARGET"
 fi
 if [[ "$1" == "module-del" ]]; then
     $MODULE="$2"
