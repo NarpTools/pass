@@ -49,8 +49,9 @@ if [[ "$1" == "module-add" ]]; then
         exit 1
     fi
     if [[ ! -d "pak/modules" ]]; then
-        echo "❌ Module directory does not exist."
-        echo "⚠️ If you want to create the modules directory, run 'pak module-attach'." 
+        echo "⚠️ Module directory does not exist. Creating it now..."
+        mkdir "pak/modules" 
+    fi
     if [[ -d "$TARGET" ]]; then
         echo "⚠️ Module $MODULE is already installed at $TARGET. Skipping..."
         exit 0
@@ -96,17 +97,6 @@ if [[ "$1" == "module-list" ]]; then
     exit 0
 fi
 
-if [[ "$1" == "module-attach" ]]; then
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌️ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
-    if [[ -d "pak/modules" ]]; then
-        echo "⚠️ The modules directory is already attached."
-    fi
-    mkdir pak/modules
-fi
-
 if [[ "$1" == "link" && "$2" == "init" ]]; then
     REMOTE_URL="$3"
 
@@ -146,5 +136,4 @@ if [[ "$1" == "link" && "$2" == "gh-create" ]]; then
 
     echo "✅ GitHub repository created and project pushed."
     exit 0
-fi
 fi
