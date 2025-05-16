@@ -24,7 +24,9 @@ if [[ "$1" == "zip" ]]; then
     cp -r bin media pak.conf pak project .build/ 2>/dev/null
 
     # Create the directory
-    mkdir archives
+    if [[ ! -d "archives" ]]; then
+        mkdir archives
+    fi
 
     # Create the archive
     tar -cJf "$OUTPUT_NAME" -C .build .
