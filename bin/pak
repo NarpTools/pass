@@ -23,8 +23,12 @@ if [[ "$1" == "zip" ]]; then
     mkdir -p .build
     cp -r bin media pak.conf pak project .build/ 2>/dev/null
 
+    # Create the directory
+    mkdir archived
+
     # Create the archive
     tar -cJf "$OUTPUT_NAME" -C .build .
+    mv "$OUTPUT_NAME" archived
 
     # Cleanup
     rm -rf .build
@@ -32,15 +36,11 @@ if [[ "$1" == "zip" ]]; then
     echo "📦 Package archived: $OUTPUT_NAME"
 fi
 if [[ "$1" == "install" ]]; then
-    if [[ ! -f "$2.choco.pkg" ]]; then
-        echo "❌️ No such package: $2."
+    if [[ ! -f "pkg.conf" ]]; then
+        echo "❌️ Not a valid pak project: pak.conf not found."
         exit 1
     fi
-    mkdir -p "$2"
-    tar -xf "$2.choco.pkg" -C "$2"
-    sudo bitey install local "$2"
-    rm -rf "$2"
-    echo "📦 Installed package archive: $2.choco.pkg"
+    
 fi  
 if [[ "$1" == "module-add" ]]; then
     $MODULE="$2"
