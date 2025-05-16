@@ -42,7 +42,9 @@ if [[ "$1" == "install" ]]; then
         echo "❌️ Not a valid pak project: pak.conf not found."
         exit 1
     fi
-    sudo bitey install local .
+    PACKAGE_NAME=$(grep PACKAGE_NAME pak.conf | cut -d= -f2 | tr -d '"')
+    cd ..
+    sudo bitey install local $PACKAGE_NAME
 fi  
 if [[ "$1" == "module-add" ]]; then
     $MODULE="$2"
