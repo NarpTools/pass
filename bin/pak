@@ -32,16 +32,15 @@ if [[ "$1" == "zip" ]]; then
     echo "📦 Package archived: $OUTPUT_NAME"
 fi
 if [[ "$1" == "install" ]]; then
-    $PACKAGE="$2"
-    if [[ ! -f "$PACKAGE" ]]; then
-        echo "❌️ No such package: $PACKAGE."
+    if [[ ! -f "$2.choco.pkg" ]]; then
+        echo "❌️ No such package: $2."
         exit 1
     fi
-    mkdir -p "$PACKAGE"
-    tar -xf "$PACKAGE.choco.pkg" -C "$PACKAGE"
-    sudo bitey install local "$PACKAGE"
-    rm -rf "$PACKAGE"
-    echo "📦 Installed package archive: $PACKAGE.choco.pkg"
+    mkdir -p "$2"
+    tar -xf "$2.choco.pkg" -C "$2"
+    sudo bitey install local "$2"
+    rm -rf "$2"
+    echo "📦 Installed package archive: $2.choco.pkg"
 fi  
 if [[ "$1" == "module-add" ]]; then
     $MODULE="$2"
