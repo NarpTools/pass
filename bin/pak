@@ -57,6 +57,7 @@ if [[ "$1" == "module-add" ]]; then
     fi
     # Move the module
     mv "$ORIGIN" "$TARGET"
+    echo "✅ Module $MODULE has been added."
 fi
 
 if [[ "$1" == "module-del" ]]; then
@@ -76,8 +77,9 @@ if [[ "$1" == "module-del" ]]; then
         echo "❌️ $MODULE is not installed."
         exit 1
     fi
-    # Remove the module
+    # Delete the module
     rm -rf "$TARGET"
+    echo "🗑️ Module $MODULE has been deleted."
 fi
 
 if [[ "$1" == "module-list" ]]; then
