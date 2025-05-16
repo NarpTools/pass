@@ -38,7 +38,7 @@ if [[ "$1" == "zip" ]]; then
     echo "📦 Package archived: $OUTPUT_NAME"
 fi
 if [[ "$1" == "install" ]]; then
-    if [[ ! -f "pkg.conf" ]]; then
+    if [[ ! -f "pak.conf" ]]; then
         echo "❌️ Not a valid pak project: pak.conf not found."
         exit 1
     fi
