@@ -6,3 +6,28 @@ if [[ "$1" == "init" ]]; then
     echo -e "DEPENDS=(\n)" > project/depends.txt
     git rev-parse --is-inside-work-tree &>/dev/null || git init
 fi
+
+if [[ "$1" == "zip" ]]; then
+    # Check if we're in a valid pak project
+    if [[ ! -f "pak.conf" ]]; then
+        echo "Not a valid pak project: pak.conf not found."
+        exit 1
+    fi
+
+    # Extract package name and version
+    PACKAGE_NAME=$(grep PACKAGE_NAME pak.conf | cut -d= -f2 | tr -d '"')
+    PACKAGE_VERSION=$(grep PACKAGE_VERSION pak.conf | cut -d= -f2 | tr -d '"')
+    OUTPUT_NAME="${PACKAGE_NAME,,}-${PACKAGE_VERSION}.choco.pkg"
+
+    # Create temporary build directory
+    mkdir -p .build
+    cp -r bin media pak.conf pak project .build/ 2>/dev/null
+
+    # Create the archive
+    tar -cJf "$OUTPUT_NAME" -C .build .
+
+    # Cleanup
+    rm -rf .build
+
+    echo "Package created: $OUTPUT_NAME"
+fi
