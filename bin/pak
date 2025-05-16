@@ -3,6 +3,7 @@
 if [[ "$1" == "init" ]]; then
     mkdir pak project bin media
     touch pak.conf project/paths.txt project/install.sh project/remove.sh project/update.sh project/depends.txt pak/ensure.txt
+    echo -e "PACKAGE_NAME=$(basename $PWD)\n" > pak.conf
     echo -e "DEPENDS=(\n)" > project/depends.txt
     git rev-parse --is-inside-work-tree &>/dev/null || git init
 fi
