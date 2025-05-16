@@ -10,7 +10,7 @@ fi
 if [[ "$1" == "zip" ]]; then
     # Check if we're in a valid pak project
     if [[ ! -f "pak.conf" ]]; then
-        echo "Not a valid pak project: pak.conf not found."
+        echo "❌️ Not a valid pak project: pak.conf not found."
         exit 1
     fi
 
@@ -29,5 +29,5 @@ if [[ "$1" == "zip" ]]; then
     # Cleanup
     rm -rf .build
 
-    echo "Package created: $OUTPUT_NAME"
+    echo "📦 Package archived: $OUTPUT_NAME"
 fi
