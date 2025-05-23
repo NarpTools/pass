@@ -8,7 +8,7 @@ arg = ARGV[2]
 
 case command
 when 'init'
-  FileUtils.mkdir_p(['pak', 'project', 'bin', 'media', 'pass-big'])
+  FileUtils.mkdir_p(['pak', 'project', 'bin', 'media', 'pass-big', 'pass-root'])
   File.write('pak.conf', "PACKAGE_NAME=\"#{File.basename(Dir.pwd)}\"")
   ['paths.txt', 'install.sh', 'remove.sh', 'update.sh', 'depends.txt'].each do |f|
     FileUtils.touch("project/#{f}")
