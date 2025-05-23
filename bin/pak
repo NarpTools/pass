@@ -7,7 +7,7 @@ subcommand = ARGV[1]
 arg = ARGV[2]
 
 case command
-when 'init' do
+when 'init'
   FileUtils.mkdir_p(['pak', 'project', 'bin', 'media'])
   File.write('pak.conf', "PACKAGE_NAME=\"#{File.basename(Dir.pwd)}\"")
   ['paths.txt', 'install.sh', 'remove.sh', 'update.sh', 'depends.txt'].each do |f|
@@ -16,8 +16,8 @@ when 'init' do
   FileUtils.touch('pak/ensure.txt')
   system('git rev-parse --is-inside-work-tree > /dev/null 2>&1') || system('git init')
   puts "✅ New PASS project initialized."
-end
-when 'zip' do
+
+when 'zip'
   unless File.exist?('pak.conf')
     puts "❌ Not a valid pak project: pak.conf not found."
     exit 1
@@ -38,8 +38,8 @@ when 'zip' do
   FileUtils.rm_rf('.build')
 
   puts "✅ Package archived: #{output_name}"
-end
-when 'module-add' do
+
+when 'module-add'
   module_name = subcommand
   origin = "./#{module_name}"
   target = "./pak/modules/#{module_name}"
@@ -58,8 +58,8 @@ when 'module-add' do
 
   FileUtils.mv(origin, target)
   puts "✅ Module #{module_name} has been added."
-end
-when 'module-del' do
+
+when 'module-del'
   module_name = subcommand
   target = "./pak/modules/#{module_name}"
 
@@ -80,21 +80,21 @@ when 'module-del' do
 
   FileUtils.rm_rf(target)
   puts "✅ Module #{module_name} has been deleted."
-end
-when 'module-list' do
+
+when 'module-list'
   unless File.exist?('pak.conf')
-    puts "\u274C Not a valid pak project: pak.conf not found."
+    puts "❌ Not a valid pak project: pak.conf not found."
     exit 1
   end
 
   unless Dir.exist?('pak/modules')
-    puts "\u2139\ufe0f No modules installed."
+    puts "ℹ️ No modules installed."
     exit 0
   end
 
-  puts "\ud83d\udce6 Installed modules:"
+  puts "📦 Installed modules:"
   puts Dir.entries('pak/modules').select { |f| !f.start_with?('.') }
-end
+
 when 'link'
   if subcommand == 'init'
     remote_url = arg
@@ -110,9 +110,9 @@ when 'link'
     end
 
     system('git rev-parse --is-inside-work-tree > /dev/null 2>&1') || system('git init')
-    system("git remote add origin #{remote_url}") || puts("\u26a0\ufe0f Remote 'origin' already exists.")
+    system("git remote add origin #{remote_url}") || puts("⚠️ Remote 'origin' already exists.")
     system('git add .')
-    system('git commit -m "Initial commit"') || puts("\u26a0\ufe0f Nothing to commit or already committed.")
+    system('git commit -m "Initial commit"') || puts("⚠️ Nothing to commit or already committed.")
     system('git branch -M main')
     system('git push -u origin main')
     puts "✅ Project attached to #{remote_url} and pushed."
@@ -130,7 +130,7 @@ when 'link'
     system("gh repo create #{gh_user}/#{repo_name} --public --source=. --remote=origin --push")
     puts "✅ GitHub repository created and project pushed."
   end
-end
+
 when 'big'
   if subcommand == 'add'
     pattern = arg
