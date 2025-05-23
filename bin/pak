@@ -7,7 +7,7 @@ subcommand = ARGV[1]
 arg = ARGV[2]
 
 case command
-when 'init'
+when 'init' do
   FileUtils.mkdir_p(['pak', 'project', 'bin', 'media'])
   File.write('pak.conf', "PACKAGE_NAME=\"#{File.basename(Dir.pwd)}\"")
   ['paths.txt', 'install.sh', 'remove.sh', 'update.sh', 'depends.txt'].each do |f|
@@ -15,10 +15,11 @@ when 'init'
   end
   FileUtils.touch('pak/ensure.txt')
   system('git rev-parse --is-inside-work-tree > /dev/null 2>&1') || system('git init')
-
-when 'zip'
+  puts "✅ New PASS project initialized."
+end
+when 'zip' do
   unless File.exist?('pak.conf')
-    puts "\u274C Not a valid pak project: pak.conf not found."
+    puts "❌ Not a valid pak project: pak.conf not found."
     exit 1
   end
 
@@ -36,51 +37,51 @@ when 'zip'
   FileUtils.mv(output_name, 'archives')
   FileUtils.rm_rf('.build')
 
-  puts "\ud83d\udce6 Package archived: #{output_name}"
-
-when 'module-add'
+  puts "✅ Package archived: #{output_name}"
+end
+when 'module-add' do
   module_name = subcommand
   origin = "./#{module_name}"
   target = "./pak/modules/#{module_name}"
 
   unless File.exist?('pak.conf')
-    puts "\u274C Not a valid pak project: pak.conf not found."
+    puts "❌ Not a valid pak project: pak.conf not found."
     exit 1
   end
 
   FileUtils.mkdir_p('pak/modules') unless Dir.exist?('pak/modules')
 
   if Dir.exist?(target)
-    puts "\u26a0\ufe0f Module #{module_name} already exists at #{target}. Skipping..."
+    puts "⚠️ Module #{module_name} already exists at #{target}. Skipping..."
     exit 0
   end
 
   FileUtils.mv(origin, target)
-  puts "\u2705 Module #{module_name} has been added."
-
-when 'module-del'
+  puts "✅ Module #{module_name} has been added."
+end
+when 'module-del' do
   module_name = subcommand
   target = "./pak/modules/#{module_name}"
 
   unless File.exist?('pak.conf')
-    puts "\u274C Not a valid pak project: pak.conf not found."
+    puts "❌ Not a valid pak project: pak.conf not found."
     exit 1
   end
 
   unless Dir.exist?('pak/modules')
-    puts "\u274C No modules installed."
+    puts "❌ No modules installed."
     exit 1
   end
 
   unless Dir.exist?(target)
-    puts "\u274C #{module_name} is not installed."
+    puts "❌ #{module_name} is not installed."
     exit 1
   end
 
   FileUtils.rm_rf(target)
-  puts "\ud83d\udd91\ufe0f Module #{module_name} has been deleted."
-
-when 'module-list'
+  puts "✅ Module #{module_name} has been deleted."
+end
+when 'module-list' do
   unless File.exist?('pak.conf')
     puts "\u274C Not a valid pak project: pak.conf not found."
     exit 1
@@ -93,18 +94,18 @@ when 'module-list'
 
   puts "\ud83d\udce6 Installed modules:"
   puts Dir.entries('pak/modules').select { |f| !f.start_with?('.') }
-
+end
 when 'link'
   if subcommand == 'init'
     remote_url = arg
     if remote_url.nil?
-      puts "\u274C No remote repository URL specified."
-      puts "Usage: pak link init <remote-url>"
+      puts "❌ No remote repository URL specified."
+      puts "🔗 Usage: pak link init <remote-url>"
       exit 1
     end
 
     unless File.exist?('pak.conf')
-      puts "\u274C Not a valid pak project: pak.conf not found."
+      puts "❌ Not a valid pak project: pak.conf not found."
       exit 1
     end
 
@@ -114,39 +115,39 @@ when 'link'
     system('git commit -m "Initial commit"') || puts("\u26a0\ufe0f Nothing to commit or already committed.")
     system('git branch -M main')
     system('git push -u origin main')
-    puts "\u2705 Project attached to #{remote_url} and pushed."
+    puts "✅ Project attached to #{remote_url} and pushed."
 
   elsif subcommand == 'gh-create'
     repo_name = File.basename(Dir.pwd)
     gh_user = `gh api user`.match(/"login":\s*"(.*?)"/)&.captures&.first
 
     if gh_user.nil?
-      puts "\u274C GitHub CLI not authenticated. Run: gh auth login"
+      puts "❌ GitHub CLI not authenticated. Run: gh auth login"
       exit 1
     end
 
-    puts "\ud83d\udce1 Creating GitHub repository: #{gh_user}/#{repo_name} ..."
+    puts "⏳ Creating GitHub repository: #{gh_user}/#{repo_name} ..."
     system("gh repo create #{gh_user}/#{repo_name} --public --source=. --remote=origin --push")
-    puts "\u2705 GitHub repository created and project pushed."
+    puts "✅ GitHub repository created and project pushed."
   end
-
+end
 when 'big'
   if subcommand == 'add'
     pattern = arg
     unless system('command -v git-lfs > /dev/null')
-      puts "\u274C Git LFS is not installed. Please install it first."
+      puts "❌ Git LFS is not installed. Please install it first."
       exit 1
     end
 
-    puts "\ud83d\udd0d Checking Git LFS..."
+    puts "🔍 Checking Git LFS..."
     system('git lfs install')
-    puts "\ud83d\udce6 Adding #{pattern} to Git LFS..."
+    puts "📦 Adding #{pattern} to Git LFS..."
     system("git lfs track \"#{pattern}\"")
-    puts "\ud83d\uddd8\ufe0f Updating .gitattributes..."
+    puts "📝 Updating .gitattributes..."
     system('git add .gitattributes')
     system("git commit -m \"PASS BIG! tracked pattern: #{pattern} via PASS BIG!\"")
-    puts "\u2705 PASS BIG! tracking added: #{pattern}"
+    puts "✅ PASS BIG! tracking added: #{pattern}"
   else
-    puts "\u274C Unknown PASS BIG! subcommand. Use: pak big add <pattern>"
+    puts "❌ Unknown PASS BIG! subcommand. Use: pak big add <pattern>"
   end
 end
