@@ -6,6 +6,21 @@ command = ARGV[0]
 subcommand = ARGV[1]
 arg = ARGV[2]
 
+def find_pass_root(start_dir = Dir.pwd)
+  current_dir = File.expand_path(start_dir)
+
+  loop do
+    return current_dir if Dir.exist?(File.join(current_dir, "pass-root"))
+
+    parent_dir = File.expand_path("..", current_dir)
+    break if parent_dir == current_dir  # reached filesystem root
+
+    current_dir = parent_dir
+  end
+
+  nil  # not found
+end
+
 case command
 when 'init'
   FileUtils.mkdir_p(['pak', 'project', 'bin', 'media', 'pass-big', 'pass-root'])
@@ -150,4 +165,24 @@ when 'big'
   else
     puts "❌ Unknown PASS BIG! subcommand. Use: pak big add <pattern>"
   end
+
+when 'commit'
+  root = find_pass_root
+  unless root
+    puts "❌ Could not find project root (missing pass-root directory)."
+    exit 1
+  end
+
+  timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+  commitfile = File.join(root, 'pass-root/commit.txt')
+
+  puts "📦 Committing changes to Git..."
+  unless system("git commit -m \"Project Update\"")
+    puts "❌ Git commit failed or no changes to commit."
+    exit 1
+  end
+
+  File.write(commitfile, timestamp)
+  puts "🕒 Commit time saved to #{commitfile}"
+
 end
