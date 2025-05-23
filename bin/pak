@@ -1,138 +1,152 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-if [[ "$1" == "init" ]]; then
-    mkdir pak project bin media
-    touch pak.conf project/paths.txt project/install.sh project/remove.sh project/update.sh project/depends.txt pak/ensure.txt
-    echo -e "PACKAGE_NAME=\"$(basename "$PWD")\"" > pak.conf
-    git rev-parse --is-inside-work-tree &>/dev/null || git init
-fi
+require 'fileutils'
 
-if [[ "$1" == "zip" ]]; then
-    # Check if we're in a valid pak project
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌️ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
+command = ARGV[0]
+subcommand = ARGV[1]
+arg = ARGV[2]
 
-    # Extract package name and version
-    PACKAGE_NAME=$(grep PACKAGE_NAME pak.conf | cut -d= -f2 | tr -d '"')
-    PACKAGE_VERSION=$(grep PACKAGE_VERSION pak.conf | cut -d= -f2 | tr -d '"')
-    OUTPUT_NAME="${PACKAGE_NAME,,}-${PACKAGE_VERSION}.choco.pkg"
+case command
+when 'init'
+  FileUtils.mkdir_p(['pak', 'project', 'bin', 'media'])
+  File.write('pak.conf', "PACKAGE_NAME=\"#{File.basename(Dir.pwd)}\"")
+  ['paths.txt', 'install.sh', 'remove.sh', 'update.sh', 'depends.txt'].each do |f|
+    FileUtils.touch("project/#{f}")
+  end
+  FileUtils.touch('pak/ensure.txt')
+  system('git rev-parse --is-inside-work-tree > /dev/null 2>&1') || system('git init')
 
-    # Create temporary build directory
-    mkdir -p .build
-    cp -r bin media pak.conf pak project .build/ 2>/dev/null
+when 'zip'
+  unless File.exist?('pak.conf')
+    puts "\u274C Not a valid pak project: pak.conf not found."
+    exit 1
+  end
 
-    # Create the directory
-    if [[ ! -d "archives" ]]; then
-        mkdir archives
-    fi
+  pkg_name = File.read('pak.conf')[/PACKAGE_NAME="(.*?)"/, 1]
+  pkg_ver = File.read('pak.conf')[/PACKAGE_VERSION="(.*?)"/, 1] || '0.1.0'
+  output_name = "#{pkg_name.downcase}-#{pkg_ver}.choco.pkg"
 
-    # Create the archive
-    tar -cJf "$OUTPUT_NAME" -C .build .
-    mv "$OUTPUT_NAME" archives
+  FileUtils.mkdir_p('.build')
+  ['bin', 'media', 'pak.conf', 'pak', 'project'].each do |f|
+    FileUtils.cp_r(f, '.build/') if File.exist?(f)
+  end
 
-    # Cleanup
-    rm -rf .build
+  FileUtils.mkdir_p('archives')
+  system("tar -cJf #{output_name} -C .build .")
+  FileUtils.mv(output_name, 'archives')
+  FileUtils.rm_rf('.build')
 
-    echo "📦 Package archived: $OUTPUT_NAME"
-fi
+  puts "\ud83d\udce6 Package archived: #{output_name}"
 
-if [[ "$1" == "module-add" ]]; then
-    MODULE="$2"
-    ORIGIN="./$MODULE"
-    TARGET="./pak/modules/$MODULE"
-    # Check if we're in a valid pak project
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌️ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
-    if [[ ! -d "pak/modules" ]]; then
-        echo "⚠️ Module directory does not exist. Creating it now..."
-        mkdir "pak/modules" 
-    fi
-    if [[ -d "$TARGET" ]]; then
-        echo "⚠️ Module $MODULE is already installed at $TARGET. Skipping..."
-        exit 0
-    fi
-    # Move the module
-    mv "$ORIGIN" "$TARGET"
-    echo "✅ Module $MODULE has been added."
-fi
+when 'module-add'
+  module_name = subcommand
+  origin = "./#{module_name}"
+  target = "./pak/modules/#{module_name}"
 
-if [[ "$1" == "module-del" ]]; then
-    MODULE="$2"
-    TARGET="./pak/modules/$MODULE"
-    # Check if we're in a valid pak project
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌️ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
-    # Ensure modules directory exists
-    if [[ ! -d pak/modules ]]; then
-        echo "❌️ No modules installed."
-        exit 1
-    fi
-    if [[ ! -d "$TARGET" ]]; then
-        echo "❌️ $MODULE is not installed."
-        exit 1
-    fi
-    # Delete the module
-    rm -rf "$TARGET"
-    echo "🗑️ Module $MODULE has been deleted."
-fi
+  unless File.exist?('pak.conf')
+    puts "\u274C Not a valid pak project: pak.conf not found."
+    exit 1
+  end
 
-if [[ "$1" == "module-list" ]]; then
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌️ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
-    if [[ ! -d "pak/modules" ]]; then
-        echo "ℹ️ No modules installed."
-        exit 0
-    fi
-    echo "📦 Installed modules:"
-    ls pak/modules
+  FileUtils.mkdir_p('pak/modules') unless Dir.exist?('pak/modules')
+
+  if Dir.exist?(target)
+    puts "\u26a0\ufe0f Module #{module_name} already exists at #{target}. Skipping..."
     exit 0
-fi
+  end
 
-if [[ "$1" == "link" && "$2" == "init" ]]; then
-    REMOTE_URL="$3"
+  FileUtils.mv(origin, target)
+  puts "\u2705 Module #{module_name} has been added."
 
-    if [[ -z "$REMOTE_URL" ]]; then
-        echo "❌ No remote repository URL specified."
-        echo "Usage: pak attach init <remote-url>"
-        exit 1
-    fi
+when 'module-del'
+  module_name = subcommand
+  target = "./pak/modules/#{module_name}"
 
-    if [[ ! -f "pak.conf" ]]; then
-        echo "❌ Not a valid pak project: pak.conf not found."
-        exit 1
-    fi
+  unless File.exist?('pak.conf')
+    puts "\u274C Not a valid pak project: pak.conf not found."
+    exit 1
+  end
 
-    git rev-parse --is-inside-work-tree &>/dev/null || git init
-    git remote add origin "$REMOTE_URL" 2>/dev/null || echo "⚠️ Remote 'origin' already exists."
-    git add .
-    git commit -m "Initial commit" 2>/dev/null || echo "⚠️ Nothing to commit or already committed."
-    git branch -M main
-    git push -u origin main
+  unless Dir.exist?('pak/modules')
+    puts "\u274C No modules installed."
+    exit 1
+  end
 
-    echo "✅ Project attached to $REMOTE_URL and pushed."
+  unless Dir.exist?(target)
+    puts "\u274C #{module_name} is not installed."
+    exit 1
+  end
+
+  FileUtils.rm_rf(target)
+  puts "\ud83d\udd91\ufe0f Module #{module_name} has been deleted."
+
+when 'module-list'
+  unless File.exist?('pak.conf')
+    puts "\u274C Not a valid pak project: pak.conf not found."
+    exit 1
+  end
+
+  unless Dir.exist?('pak/modules')
+    puts "\u2139\ufe0f No modules installed."
     exit 0
-fi
+  end
 
-if [[ "$1" == "link" && "$2" == "gh-create" ]]; then
-    REPO_NAME="$(basename "$PWD")"
-    GH_USER=$(gh api user | grep '"login":' | cut -d'"' -f4)
+  puts "\ud83d\udce6 Installed modules:"
+  puts Dir.entries('pak/modules').select { |f| !f.start_with?('.') }
 
-    if [[ -z "$GH_USER" ]]; then
-        echo "❌ GitHub CLI not authenticated. Run: gh auth login"
-        exit 1
-    fi
+when 'link'
+  if subcommand == 'init'
+    remote_url = arg
+    if remote_url.nil?
+      puts "\u274C No remote repository URL specified."
+      puts "Usage: pak link init <remote-url>"
+      exit 1
+    end
 
-    echo "📡 Creating GitHub repository: $GH_USER/$REPO_NAME ..."
-    gh repo create "$GH_USER/$REPO_NAME" --public --source=. --remote=origin --push
+    unless File.exist?('pak.conf')
+      puts "\u274C Not a valid pak project: pak.conf not found."
+      exit 1
+    end
 
-    echo "✅ GitHub repository created and project pushed."
-    exit 0
-fi
+    system('git rev-parse --is-inside-work-tree > /dev/null 2>&1') || system('git init')
+    system("git remote add origin #{remote_url}") || puts("\u26a0\ufe0f Remote 'origin' already exists.")
+    system('git add .')
+    system('git commit -m "Initial commit"') || puts("\u26a0\ufe0f Nothing to commit or already committed.")
+    system('git branch -M main')
+    system('git push -u origin main')
+    puts "\u2705 Project attached to #{remote_url} and pushed."
+
+  elsif subcommand == 'gh-create'
+    repo_name = File.basename(Dir.pwd)
+    gh_user = `gh api user`.match(/"login":\s*"(.*?)"/)&.captures&.first
+
+    if gh_user.nil?
+      puts "\u274C GitHub CLI not authenticated. Run: gh auth login"
+      exit 1
+    end
+
+    puts "\ud83d\udce1 Creating GitHub repository: #{gh_user}/#{repo_name} ..."
+    system("gh repo create #{gh_user}/#{repo_name} --public --source=. --remote=origin --push")
+    puts "\u2705 GitHub repository created and project pushed."
+  end
+
+when 'big'
+  if subcommand == 'add'
+    pattern = arg
+    unless system('command -v git-lfs > /dev/null')
+      puts "\u274C Git LFS is not installed. Please install it first."
+      exit 1
+    end
+
+    puts "\ud83d\udd0d Checking Git LFS..."
+    system('git lfs install')
+    puts "\ud83d\udce6 Adding #{pattern} to Git LFS..."
+    system("git lfs track \"#{pattern}\"")
+    puts "\ud83d\uddd8\ufe0f Updating .gitattributes..."
+    system('git add .gitattributes')
+    system("git commit -m \"PASS BIG! tracked pattern: #{pattern} via PASS BIG!\"")
+    puts "\u2705 PASS BIG! tracking added: #{pattern}"
+  else
+    puts "\u274C Unknown PASS BIG! subcommand. Use: pak big add <pattern>"
+  end
+end
