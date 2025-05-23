@@ -177,6 +177,7 @@ when 'commit'
   commitfile = File.join(root, 'pass-root/commit.txt')
 
   puts "📦 Committing changes to Git..."
+  system('git add #{root}')
   unless system("git commit -m \"Project Update\"")
     puts "❌ Git commit failed or no changes to commit."
     exit 1
